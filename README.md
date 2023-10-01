@@ -1,6 +1,6 @@
 # Blazor-OramaSearch
 
-How to use [Orara](https://oramasearch.com/) Search in a Blazor Webassembly application
+How to use [Orama](https://oramasearch.com/) Search in a Blazor Webassembly application
 
 
 ---
