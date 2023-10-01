@@ -1,0 +1,102 @@
+﻿@page "/search/orama"
+@implements IAsyncDisposable
+
+@using System.Diagnostics
+
+@inject SwapiService Swapi
+@inject IJSRuntime JS
+
+<h3>Search with Orama Search</h3>
+
+@if (_films is null)
+{
+    <p>loading ...</p>
+}
+else
+{
+    <EditForm Model="this" OnValidSubmit="Search">
+        <div class="form-floating mb-3">
+            <InputText class="form-control" id="txtSearch" @bind-Value="_searchText" />
+            <label for="txtSearch">Search text</label>
+        </div>
+        <button type="submit" class="btn btn-primary">Search</button>
+    </EditForm>
+    <p>@_elapsedText</p>
+
+    @if (_films is not null)
+    {
+        <ul>
+            @foreach (var film in _films)
+            {
+                <li>
+                    <h5>@film.Title</h5>
+                    <p>Director: @film.Director</p>
+                    <p>OpeningCrawl: @film.OpeningCrawl</p>
+                </li>
+            }
+        </ul>
+    }
+}
+
+@code {
+    private IEnumerable<Film>? _allFilms;
+    private IEnumerable<Film>? _films;
+
+    private string? _searchText;
+    private string? _elapsedText;
+
+    private IJSObjectReference? _module;
+    private IJSObjectReference? _movieDB;
+
+    private bool _dbInitialized;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _allFilms = await Swapi.GetFilmsAsync();
+        _films = _allFilms;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _module = await JS.InvokeAsync<IJSObjectReference>("import", "./Pages/TestOrama.razor.js");
+            _movieDB = await _module.InvokeAsync<IJSObjectReference>("createDB");
+        }
+
+        if (_module is not null && !_dbInitialized && _allFilms is not null)
+        {
+            await _module.InvokeVoidAsync("addFilms", _movieDB, _allFilms);
+            _dbInitialized = true;
+        }
+    }
+
+
+    public async Task Search()
+    {
+        _elapsedText = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(_searchText))
+        {
+            _films = _allFilms;
+            return;
+        }
+
+        var sw = new Stopwatch();
+        sw.Start();
+
+        var results = await _module.InvokeAsync<IEnumerable<Film>>("searchFilms", _movieDB, _searchText);
+
+        sw.Stop();
+
+        _films = results;
+        _elapsedText = $"Elapsed: {sw.ElapsedMilliseconds} ms";
+    }
+
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_module is not null)
+            await _module.DisposeAsync();
+    }
+}

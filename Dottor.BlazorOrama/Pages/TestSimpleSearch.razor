@@ -1,0 +1,94 @@
+﻿@page "/search/text"
+@using System.Diagnostics;
+
+@inject SwapiService Swapi
+
+<h3>Search with string.Contains</h3>
+
+@if (_films is null)
+{
+    <p>loading ...</p>
+}
+else
+{
+    <EditForm Model="this" OnValidSubmit="Search">
+        <div class="form-floating mb-3">
+            <InputText class="form-control" id="txtSearch" @bind-Value="_searchText" />
+            <label for="txtSearch">Search text</label>
+        </div>
+        <button type="submit" class="btn btn-primary">Search</button>
+    </EditForm>
+    <p>@_elapsedText</p>
+
+    @if (_films is not null)
+    {
+        <ul>
+            @foreach (var film in _films)
+            {
+                <li>
+                    <h5>@film.Title</h5>
+                    <p>Director: @film.Director</p>
+                    <p>OpeningCrawl: @film.OpeningCrawl</p>
+                </li>
+            }
+        </ul>
+
+    }
+}
+
+@code {
+    private IEnumerable<Film>? _allFilms;
+    private IEnumerable<Film>? _films;
+
+    private string? _searchText;
+    private string? _elapsedText;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _allFilms = await Swapi.GetFilmsAsync();
+        _films = _allFilms;
+    }
+
+
+    public async Task Search()
+    {
+        _elapsedText = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(_searchText))
+        {
+            _films = _allFilms;
+            return;
+        }
+
+        var results = new List<Film>();
+
+        var sw = new Stopwatch();
+        sw.Start();
+
+        // search in films by _searchText words
+        foreach (var film in _allFilms)
+        {
+            if (film.Title.Contains(_searchText, StringComparison.OrdinalIgnoreCase))
+            {
+                results.Add(film);
+            }
+            else if (film.Director.Contains(_searchText, StringComparison.OrdinalIgnoreCase))
+            {
+                results.Add(film);
+            }
+            else if (film.Producer.Contains(_searchText, StringComparison.OrdinalIgnoreCase))
+            {
+                results.Add(film);
+            }
+            else if (film.OpeningCrawl.Contains(_searchText, StringComparison.OrdinalIgnoreCase))
+            {
+                results.Add(film);
+            }
+        }
+
+        sw.Stop();
+
+        _films = results;
+        _elapsedText = $"Elapsed: {sw.ElapsedMilliseconds} ms";
+    }
+}
