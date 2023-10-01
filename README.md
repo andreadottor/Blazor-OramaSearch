@@ -5,4 +5,4 @@ How to use [Orara](https://oramasearch.com/) Search in a Blazor Webassembly appl
 
 ---
 
-See **Pages/TestOrama.razor** for an (very simple) example of how to use the Orama search in a Blazor component.
+See **Pages/TestOrama.razor** for a (very simple) example.
