@@ -71,7 +71,6 @@ else
         }
     }
 
-
     public async Task Search()
     {
         _elapsedText = string.Empty;
@@ -85,7 +84,7 @@ else
         var sw = new Stopwatch();
         sw.Start();
 
-        var results = await _module.InvokeAsync<IEnumerable<Film>>("searchFilms", _movieDB, _searchText);
+        var results = await _module!.InvokeAsync<IEnumerable<Film>>("searchFilms", _movieDB, _searchText);
 
         sw.Stop();
 
@@ -96,6 +95,9 @@ else
 
     public async ValueTask DisposeAsync()
     {
+        if (_movieDB is not null)
+            await _movieDB.DisposeAsync();
+
         if (_module is not null)
             await _module.DisposeAsync();
     }
